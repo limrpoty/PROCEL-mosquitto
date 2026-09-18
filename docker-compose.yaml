@@ -1,0 +1,28 @@
+name: procel-mosquitto
+
+services:
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: procel-mosquitto
+    restart: unless-stopped
+    ports:
+      - "8883:8883"
+    volumes:
+      - ./config/mosquitto.docker.conf:/mosquitto/config/mosquitto.conf:ro,z
+      - ./config/passwd:/mosquitto/config/passwd:ro,z
+      - ./config/acl.conf:/mosquitto/config/acl.conf:ro,z
+      - ./certs:/mosquitto/certs:ro,z
+      - mqtt_data:/mosquitto/data
+      - mqtt_log:/mosquitto/log
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-h", "127.0.0.1", "-p", "8883",
+             "--cafile", "/mosquitto/certs/ca.crt",
+             "-u", "backend_procel_telemetry", "-P", "TrocarSenhaBackend123!",
+             "-t", "$$SYS/#", "-C", "1", "-W", "5"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  mqtt_data:
+  mqtt_log:
